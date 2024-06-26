@@ -4,6 +4,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter, SuccessInterceptor } from './common';
 
+declare const module: any;
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -31,7 +33,7 @@ async function bootstrap() {
     },
   });
 
-  const port = process.env.port;
+  const port = process.env.PORT;
 
   await app
     .listen(port)
@@ -43,5 +45,10 @@ async function bootstrap() {
     .catch((error) => {
       console.error(`🆘 Server error ${error}`);
     });
+
+  if (module.hot) {
+    module.hot.accept();
+    module.hot.dispose(() => app.close());
+  }
 }
 bootstrap();
