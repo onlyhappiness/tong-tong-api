@@ -9,7 +9,7 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 
 // 타입
 export enum PetTypeEnum {
@@ -49,8 +49,7 @@ export enum PetSpeciesEnum {
 
 @Entity({ name: 'pet' })
 export class PetEntity extends BaseEntity {
-  @Index()
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   @IsString()
   @MaxLength(10)
   @ApiProperty({ description: '이름' })

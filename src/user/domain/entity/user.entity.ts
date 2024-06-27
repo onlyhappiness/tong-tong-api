@@ -1,4 +1,5 @@
 import { BaseEntity } from '@/common/BaseEntity';
+import { FarmEntity } from '@/farm/domain/entity/farm.entity';
 import { PetEntity } from '@/pet/domain/entity/pet.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import {
@@ -17,43 +18,46 @@ export enum LoginMethodEnnm {
 
 @Entity({ name: 'user' })
 export class UserEntity extends BaseEntity {
+  @Column({ type: 'enum', enum: LoginMethodEnnm })
   @IsString()
   @ApiProperty({ description: '로그인 방식' })
-  @Column({ type: 'enum', enum: LoginMethodEnnm })
   method: LoginMethodEnnm;
 
+  @Column({ type: 'varchar' })
   @Index()
   @IsEmail()
   @IsNotEmpty()
   @ApiProperty({ description: '이메일' })
-  @Column({ type: 'varchar' })
   email: string;
 
+  @Column({ type: 'varchar' })
   @IsString()
   @IsNotEmpty()
   @ApiProperty({ description: '닉네임' })
-  @Column({ type: 'varchar' })
   nickname: string;
 
+  @Column({ type: 'varchar' })
   @IsString()
   @IsNotEmpty()
   @ApiProperty({ description: '유저이름' })
-  @Column({ type: 'varchar' })
   username: string;
 
+  @Column({ type: 'varchar', select: false })
   @IsString()
   @IsNotEmpty()
   @MinLength(8)
   @MaxLength(20)
   @ApiProperty({ description: '비밀번호' })
-  @Column({ type: 'varchar', select: false })
   password: string;
 
+  @Column({ type: 'varchar', nullable: true })
   @IsString()
   @ApiProperty({ description: '프로필 사진' })
-  @Column({ type: 'varchar', nullable: true })
   profileUrl: string;
 
   @OneToMany(() => PetEntity, (pet) => pet.User)
   Pet: PetEntity;
+
+  @OneToMany(() => FarmEntity, (farm) => farm.User)
+  Farm: FarmEntity;
 }

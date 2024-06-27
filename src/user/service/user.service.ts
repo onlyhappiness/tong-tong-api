@@ -1,3 +1,4 @@
+import { PetService } from '@/pet/service/pet.service';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -8,6 +9,8 @@ export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+
+    private readonly petService: PetService,
   ) {}
 
   /**
@@ -30,15 +33,7 @@ export class UserService {
   async findUserByEmail(email: string) {
     const user = await this.userRepository.findOne({
       where: { email },
-      select: [
-        'id',
-        'createdAt',
-        'method',
-        'username',
-        'nickname',
-        'email',
-        'password',
-      ],
+      select: ['id', 'email', 'password'],
     });
 
     if (!user) {
@@ -46,4 +41,9 @@ export class UserService {
     }
     return user;
   }
+
+  /**
+   * 유저의 농장 조회
+   */
+  async getUserFarm(currentUser: UserEntity) {}
 }

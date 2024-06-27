@@ -17,15 +17,15 @@ export class AuthController {
   ) {}
 
   @Post('/register')
-  @ApiOperation({ summary: '회원가입' })
   @ApiBody({ type: RegisterUserDTO })
+  @ApiOperation({ summary: '회원가입' })
   async register(@Body() body: RegisterUserDTO) {
     return await this.authService.createUser(body);
   }
 
   @Post('/login')
-  @ApiOperation({ summary: '로그인' })
   @ApiBody({ type: LoginUserDTO })
+  @ApiOperation({ summary: '로그인' })
   async login(@Body() body: LoginUserDTO) {
     return await this.authService.loginUser(body);
   }
