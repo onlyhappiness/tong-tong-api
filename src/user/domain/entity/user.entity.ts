@@ -1,4 +1,5 @@
 import { BaseEntity } from '@/common/BaseEntity';
+import { PetEntity } from '@/pet/domain/entity/pet.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
@@ -7,7 +8,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { Column, Entity, Index } from 'typeorm';
+import { Column, Entity, Index, OneToMany } from 'typeorm';
 
 export enum LoginMethodEnnm {
   EMAIL = 'email',
@@ -48,5 +49,11 @@ export class UserEntity extends BaseEntity {
   @Column({ type: 'varchar', select: false })
   password: string;
 
-  // 프로필 사진
+  @IsString()
+  @ApiProperty({ description: '프로필 사진' })
+  @Column({ type: 'varchar', nullable: true })
+  profileUrl: string;
+
+  @OneToMany(() => PetEntity, (pet) => pet.User)
+  Pet: PetEntity;
 }

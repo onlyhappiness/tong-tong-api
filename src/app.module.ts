@@ -5,6 +5,9 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { ExpModule } from './exp/exp.module';
+import { FarmModule } from './farm/farm.module';
+import { PetModule } from './pet/pet.module';
 import { UserModule } from './user/user.module';
 
 @Module({
@@ -28,6 +31,9 @@ import { UserModule } from './user/user.module';
     }),
     AuthModule,
     UserModule,
+    PetModule,
+    ExpModule,
+    FarmModule,
   ],
   controllers: [AppController],
   providers: [AppService],
