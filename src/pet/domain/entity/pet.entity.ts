@@ -78,9 +78,19 @@ export class PetEntity extends BaseEntity {
   @ApiProperty({ description: '종류' })
   species: PetSpeciesEnum;
 
+  @Column({ type: 'int' })
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  @ApiProperty({ description: '경험치' })
+  exp: number;
+
   @ManyToOne(() => UserEntity, (user) => user.Pet, {
     onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   User: UserEntity;
+
+  // @OneToMany(() => ExpEntity, (exp) => exp.Pet)
+  // Exp: ExpEntity;
 }

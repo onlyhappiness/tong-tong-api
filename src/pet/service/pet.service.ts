@@ -48,6 +48,7 @@ export class PetService {
       User: userId,
       ...body,
       intimacy: 0,
+      exp: 0,
       nature: await this.getRandomNature(),
     };
     const petInstance = plainToInstance(PetEntity, petInfo);

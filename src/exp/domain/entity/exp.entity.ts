@@ -11,4 +11,10 @@ export class ExpEntity extends BaseEntity {
   @ApiProperty({ description: '경험치' })
   @Column({ type: 'int' })
   exp: number;
+
+  // @ManyToOne(() => PetEntity, (pet) => pet.Exp, {
+  //   onDelete: 'SET NULL',
+  // })
+  // @JoinColumn({ name: 'pet_id', referencedColumnName: 'id' })
+  // Pet: PetEntity;
 }

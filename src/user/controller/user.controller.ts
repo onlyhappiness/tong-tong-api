@@ -28,7 +28,7 @@ export class UserController {
     return await this.farmService.findFarmByUser(currentUser);
   }
 
-  @Post('farm')
+  @Post('farm-setting')
   @ApiBody({ type: CreateFarmDTO })
   @ApiOperation({ summary: '농장 설정' })
   async createUserFarm(
@@ -38,13 +38,13 @@ export class UserController {
     return await this.farmService.createUserFarm(currentUser, body);
   }
 
-  @Get('/pet')
-  @ApiOperation({ summary: '유저의 펫 목록' })
+  @Get('/pet-list')
+  @ApiOperation({ summary: '내 펫 목록' })
   async findPetByUser(@CurrentUser() currentUser: UserEntity) {
     return await this.petService.findPetByUser(currentUser);
   }
 
-  @Post('/pet/buy')
+  @Post('/pet-buy')
   @ApiOperation({ summary: '펫 구입' })
   async createPetByUser(
     @CurrentUser() currentUser: UserEntity,

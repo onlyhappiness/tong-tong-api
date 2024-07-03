@@ -16,7 +16,7 @@ export class UserService {
   /**
    * id로 유저 찾기
    */
-  async findUserById(id: number) {
+  async findUserById(id: string) {
     const user = await this.userRepository.findOne({
       where: { id },
     });
