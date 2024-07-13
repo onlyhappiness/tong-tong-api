@@ -28,6 +28,8 @@ export class AuthService {
       password: hashedPassword,
     });
 
+    // TODO: 포인트 생성
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...withoutPassword } = user;
     return withoutPassword;

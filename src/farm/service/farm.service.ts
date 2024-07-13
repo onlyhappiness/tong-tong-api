@@ -19,7 +19,7 @@ export class FarmService {
     const queryBuilder = this.farmRepository.createQueryBuilder('farm');
     const userFarm = await queryBuilder
       .where('farm.user_id = :userId', { userId })
-      .getMany();
+      .getOne();
 
     return userFarm;
   }

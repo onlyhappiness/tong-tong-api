@@ -9,6 +9,7 @@ import { ExpModule } from './exp/exp.module';
 import { FarmModule } from './farm/farm.module';
 import { PetModule } from './pet/pet.module';
 import { UserModule } from './user/user.module';
+import { PointModule } from './point/point.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { UserModule } from './user/user.module';
     PetModule,
     ExpModule,
     FarmModule,
+    PointModule,
   ],
   controllers: [AppController],
   providers: [AppService],

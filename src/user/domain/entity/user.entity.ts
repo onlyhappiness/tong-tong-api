@@ -1,6 +1,7 @@
 import { BaseEntity } from '@/common/BaseEntity';
 import { FarmEntity } from '@/farm/domain/entity/farm.entity';
 import { PetEntity } from '@/pet/domain/entity/pet.entity';
+import { PointEntity } from '@/point/domain/entity/point.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
@@ -60,4 +61,7 @@ export class UserEntity extends BaseEntity {
 
   @OneToMany(() => FarmEntity, (farm) => farm.User)
   Farm: FarmEntity;
+
+  @OneToMany(() => PointEntity, (point) => point.User)
+  Point: PointEntity;
 }
