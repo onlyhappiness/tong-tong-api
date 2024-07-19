@@ -1,6 +1,10 @@
 import { UserEntity } from '@/user/domain/entity/user.entity';
 import { UserService } from '@/user/service/user.service';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -21,14 +25,20 @@ export class AuthService {
    * 회원가입
    */
   async createUser(body: RegisterUserDTO) {
+    // TODO: 가입된 이메일 제외
+    const userEmail = await this.userService.findUserByEmail(body.email);
+    if (userEmail) {
+      throw new ConflictException('이미 존재하는 이메일입니다.');
+    }
+
+    // TODO: 이미 존재한 닉네임 제외
+
     const hashedPassword = await bcrypt.hash(body.password, 12);
 
     const user = await this.userRepository.save({
       ...body,
       password: hashedPassword,
     });
-
-    // TODO: 포인트 생성
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...withoutPassword } = user;

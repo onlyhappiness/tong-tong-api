@@ -24,14 +24,14 @@ export class UserEntity extends BaseEntity {
   @ApiProperty({ description: '로그인 방식' })
   method: LoginMethodEnnm;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', unique: true })
   @Index()
   @IsEmail()
   @IsNotEmpty()
   @ApiProperty({ description: '이메일' })
   email: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', unique: true })
   @IsString()
   @IsNotEmpty()
   @ApiProperty({ description: '닉네임' })

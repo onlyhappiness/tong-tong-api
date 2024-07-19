@@ -41,9 +41,4 @@ export class UserService {
     }
     return user;
   }
-
-  /**
-   * 유저의 농장 조회
-   */
-  async getUserFarm(currentUser: UserEntity) {}
 }
