@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { AppController } from './app.controller';
@@ -8,8 +9,8 @@ import { AuthModule } from './auth/auth.module';
 import { ExpModule } from './exp/exp.module';
 import { FarmModule } from './farm/farm.module';
 import { PetModule } from './pet/pet.module';
-import { UserModule } from './user/user.module';
 import { PointModule } from './point/point.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -29,6 +30,9 @@ import { PointModule } from './point/point.module';
       autoLoadEntities: true,
       logging: true,
       keepConnectionAlive: true,
+      ssl: {
+        rejectUnauthorized: false,
+      },
     }),
     AuthModule,
     UserModule,
@@ -36,6 +40,7 @@ import { PointModule } from './point/point.module';
     ExpModule,
     FarmModule,
     PointModule,
+    ThrottlerModule.forRoot([{ ttl: 5000, limit: 5 }]),
   ],
   controllers: [AppController],
   providers: [AppService],
