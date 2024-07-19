@@ -61,7 +61,7 @@ export class UserController {
 
   @Post('/pet-buy')
   @ApiOperation({ summary: '펫 구입' })
-  @ApiCreatedResponse({ status: 201, description: '펫 구입 성공' })
+  @ApiCreatedResponse({ description: '펫 구입 성공' })
   @ApiBadRequestResponse({ description: '잘못된 요청' })
   async createPetByUser(
     @CurrentUser() currentUser: UserEntity,
