@@ -4,6 +4,7 @@ import { CreateFarmDTO } from '@/farm/dto/CreateFarmDto';
 import { FarmService } from '@/farm/service/farm.service';
 import { CreatePetDTO } from '@/pet/dto/CreatePetDto';
 import { PetService } from '@/pet/service/pet.service';
+import { PointService } from '@/point/service/point.service';
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -29,6 +30,8 @@ export class UserController {
     private readonly farmService: FarmService,
 
     private readonly petService: PetService,
+
+    private readonly pointService: PointService,
   ) {}
 
   @Get('/farm')
@@ -68,5 +71,12 @@ export class UserController {
     @Body() body: CreatePetDTO,
   ) {
     return await this.petService.createPetByUser(currentUser, body);
+  }
+
+  @Get('/point')
+  @ApiOperation({ summary: '포인트 조회' })
+  @ApiOkResponse({ description: '포인트 조회 성공' })
+  async getPoint(@CurrentUser() currentUser: UserEntity) {
+    return await this.pointService.findPointByUser(currentUser.id);
   }
 }

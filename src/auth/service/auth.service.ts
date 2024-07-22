@@ -26,7 +26,10 @@ export class AuthService {
    */
   async createUser(body: RegisterUserDTO) {
     // TODO: 가입된 이메일 제외
-    const userEmail = await this.userService.findUserByEmail(body.email);
+    const userEmail = await this.userRepository.findOne({
+      where: { email: body.email },
+    });
+
     if (userEmail) {
       throw new ConflictException('이미 존재하는 이메일입니다.');
     }
