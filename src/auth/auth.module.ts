@@ -1,4 +1,6 @@
 import { JwtStrategy } from '@/common/jwt/jwt.strategy';
+import { PointEntity } from '@/point/domain/entity/point.entity';
+import { PointModule } from '@/point/point.module';
 import { UserEntity } from '@/user/domain/entity/user.entity';
 import { UserModule } from '@/user/user.module';
 import { Module } from '@nestjs/common';
@@ -13,8 +15,9 @@ import { AuthService } from './service/auth.service';
       secret: process.env.JWT_ACCESS_TOKEN_SECRET,
       signOptions: { expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION_TIME },
     }),
-    TypeOrmModule.forFeature([UserEntity]),
+    TypeOrmModule.forFeature([UserEntity, PointEntity]),
     UserModule,
+    PointModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

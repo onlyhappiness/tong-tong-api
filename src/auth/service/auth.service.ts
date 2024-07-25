@@ -1,3 +1,4 @@
+import { PointService } from '@/point/service/point.service';
 import { UserEntity } from '@/user/domain/entity/user.entity';
 import { UserService } from '@/user/service/user.service';
 import {
@@ -17,8 +18,12 @@ export class AuthService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+
     private readonly jwtService: JwtService,
+
     private readonly userService: UserService,
+
+    private readonly pointService: PointService,
   ) {}
 
   /**
@@ -42,6 +47,8 @@ export class AuthService {
       ...body,
       password: hashedPassword,
     });
+
+    await this.pointService.chargePoints(user, { point: 1000 });
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...withoutPassword } = user;
