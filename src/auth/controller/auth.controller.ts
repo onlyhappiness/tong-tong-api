@@ -2,7 +2,7 @@ import { CurrentUser } from '@/common';
 import { JwtAuthGuard } from '@/common/jwt/jwt.guard';
 import { UserEntity } from '@/user/domain/entity/user.entity';
 import { UserService } from '@/user/service/user.service';
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -53,5 +53,15 @@ export class AuthController {
   @ApiNotFoundResponse({ description: '유저를 찾을 수 없음' })
   async loginUser(@CurrentUser() currentUser: UserEntity) {
     return await this.userService.findUserById(currentUser.id);
+  }
+
+  @Delete('/login')
+  @ApiOperation({ summary: '회원 탈퇴' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ description: '회원 탈퇴하였습니다.' })
+  @ApiUnauthorizedResponse({ description: '인증 실패' })
+  async withdrawUser() {
+    return '회웥 탈퇴';
   }
 }

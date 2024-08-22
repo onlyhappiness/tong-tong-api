@@ -22,7 +22,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('이메일과 비밀번호를 다시 확인해주세요.');
+      throw new UnauthorizedException('아이디와 비밀번호를 다시 확인해주세요.');
     }
     return user;
   }
@@ -37,8 +37,56 @@ export class UserService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('이메일과 비밀번호를 다시 확인해주세요.');
+      throw new UnauthorizedException('이메일을 다시 확인해주세요.');
     }
     return user;
+  }
+
+  /**
+   * 유저 계정 찾기
+   */
+  async findUserByAccount(account: string) {
+    const user = await this.userRepository.findOne({
+      where: { account },
+      select: ['id', 'account', 'password'],
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('아이디와 비밀번호를 다시 확인해주세요.');
+    }
+    return user;
+  }
+
+  /**
+   * 유저 닉네임 중복 확인
+   */
+  async nicknameDuplicatedCheck(nickname: string) {
+    const user = await this.userRepository.findOne({
+      where: { nickname },
+    });
+
+    return user ? true : false;
+  }
+
+  /**
+   * 유저 이메일 중복 확인
+   */
+  async emailDuplicatedCheck(email: string) {
+    const user = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    return user ? true : false;
+  }
+
+  /**
+   * 유저 계정 중복 확인
+   */
+  async accountDuplicatedCheck(account: string) {
+    const user = await this.userRepository.findOne({
+      where: { account },
+    });
+
+    return user ? true : false;
   }
 }

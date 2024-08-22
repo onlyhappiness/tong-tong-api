@@ -26,6 +26,13 @@ export class UserEntity extends BaseEntity {
 
   @Column({ type: 'varchar', unique: true })
   @Index()
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ description: '유저 아이디' })
+  account: string;
+
+  @Column({ type: 'varchar', unique: true })
+  @Index()
   @IsEmail()
   @IsNotEmpty()
   @ApiProperty({ description: '이메일' })

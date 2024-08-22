@@ -3,6 +3,6 @@ import { PickType } from '@nestjs/swagger';
 
 export class LoginUserDTO extends PickType(UserEntity, [
   'method',
-  'email',
+  'account',
   'password',
 ] as const) {}

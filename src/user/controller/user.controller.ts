@@ -5,7 +5,7 @@ import { FarmService } from '@/farm/service/farm.service';
 import { CreatePetDTO } from '@/pet/dto/CreatePetDto';
 import { PetService } from '@/pet/service/pet.service';
 import { PointService } from '@/point/service/point.service';
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -14,6 +14,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { UserEntity } from '../domain/entity/user.entity';
@@ -78,5 +79,41 @@ export class UserController {
   @ApiOkResponse({ description: '포인트 조회 성공' })
   async getPoint(@CurrentUser() currentUser: UserEntity) {
     return await this.pointService.findPointByUser(currentUser.id);
+  }
+
+  @Get('/check-duplicated-nickname')
+  @ApiOperation({ summary: '유저 닉네임 중복 확인' })
+  @ApiOkResponse({ description: '닉네임 중복일 경우 true' })
+  @ApiQuery({
+    name: 'nickname',
+    required: true,
+    description: '유저 닉네임',
+  })
+  async nicknameDuplicatedCheck(@Query('nickname') nickname: string) {
+    return await this.userService.nicknameDuplicatedCheck(nickname);
+  }
+
+  @Get('/check-duplicated-email')
+  @ApiOperation({ summary: '유저 이메일 중복 확인' })
+  @ApiOkResponse({ description: '이메일 중복일 경우 true' })
+  @ApiQuery({
+    name: 'email',
+    required: true,
+    description: '유저 이메일',
+  })
+  async emailDuplicatedCheck(@Query('email') email: string) {
+    return await this.userService.emailDuplicatedCheck(email);
+  }
+
+  @Get('/check-duplicated-account')
+  @ApiOperation({ summary: '유저 계정 중복 확인' })
+  @ApiOkResponse({ description: '계정 중복일 경우 true' })
+  @ApiQuery({
+    name: 'account',
+    required: true,
+    description: '유저 계정',
+  })
+  async accountDuplicatedCheck(@Query('account') account: string) {
+    return await this.userService.accountDuplicatedCheck(account);
   }
 }

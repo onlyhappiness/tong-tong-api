@@ -4,8 +4,10 @@ import { PickType } from '@nestjs/swagger';
 export class RegisterUserDTO extends PickType(UserEntity, [
   'method',
   'email',
+  'account',
   'nickname',
   'username',
   'password',
+
   //   'phone',
 ] as const) {}
