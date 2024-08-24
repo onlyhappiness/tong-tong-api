@@ -20,9 +20,7 @@ import {
 import { UserEntity } from '../domain/entity/user.entity';
 import { UserService } from '../service/user.service';
 
-@ApiTags('USER')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@ApiTags('USER 관련')
 @Controller('user')
 export class UserController {
   constructor(
@@ -37,6 +35,8 @@ export class UserController {
 
   @Get('/farm')
   @ApiOperation({ summary: '내 농장 확인하기' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({ description: '농장 조회 성공' })
   @ApiNotFoundResponse({ description: '농장을 찾을 수 없음' })
   async findFarmByUser(@CurrentUser() currentUser: UserEntity) {
@@ -44,8 +44,10 @@ export class UserController {
   }
 
   @Post('farm-setting')
-  @ApiBody({ type: CreateFarmDTO })
   @ApiOperation({ summary: '농장 설정' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiBody({ type: CreateFarmDTO })
   @ApiCreatedResponse({ description: '농장 설정 성공' })
   @ApiBadRequestResponse({ description: '잘못된 요청' })
   async createUserFarm(
@@ -57,6 +59,8 @@ export class UserController {
 
   @Get('/pet-list')
   @ApiOperation({ summary: '내 펫 목록' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({ description: '내 펫 목록 조회 성공' })
   @ApiNotFoundResponse({ description: '펫을 찾을 수 없음' })
   async findPetByUser(@CurrentUser() currentUser: UserEntity) {
@@ -65,6 +69,8 @@ export class UserController {
 
   @Post('/pet-buy')
   @ApiOperation({ summary: '펫 구입' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({ description: '펫 구입 성공' })
   @ApiBadRequestResponse({ description: '잘못된 요청' })
   async createPetByUser(
@@ -76,6 +82,8 @@ export class UserController {
 
   @Get('/point')
   @ApiOperation({ summary: '포인트 조회' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @ApiOkResponse({ description: '포인트 조회 성공' })
   async getPoint(@CurrentUser() currentUser: UserEntity) {
     return await this.pointService.findPointByUser(currentUser.id);

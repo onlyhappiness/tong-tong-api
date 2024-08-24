@@ -11,7 +11,7 @@ import {
 import { UsePointDto } from '../dto/UsePointDto';
 import { PointService } from '../service/point.service';
 
-@ApiTags('POINT')
+@ApiTags('POINT 관련')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('point')

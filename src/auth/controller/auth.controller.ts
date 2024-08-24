@@ -17,7 +17,7 @@ import { LoginUserDTO } from '../dto/LoginUserDto';
 import { RegisterUserDTO } from '../dto/RegisterUserDto';
 import { AuthService } from '../service/auth.service';
 
-@ApiTags('AUTH')
+@ApiTags('AUTH 관련')
 @Controller('auth')
 export class AuthController {
   constructor(
