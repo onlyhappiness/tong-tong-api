@@ -89,7 +89,7 @@ export class UserController {
     return await this.pointService.findPointByUser(currentUser.id);
   }
 
-  @Get('/check-duplicated-nickname')
+  @Post('/check-duplicated-nickname')
   @ApiOperation({ summary: '유저 닉네임 중복 확인' })
   @ApiOkResponse({ description: '닉네임 중복일 경우 true' })
   @ApiQuery({
@@ -101,7 +101,7 @@ export class UserController {
     return await this.userService.nicknameDuplicatedCheck(nickname);
   }
 
-  @Get('/check-duplicated-email')
+  @Post('/check-duplicated-email')
   @ApiOperation({ summary: '유저 이메일 중복 확인' })
   @ApiOkResponse({ description: '이메일 중복일 경우 true' })
   @ApiQuery({
@@ -113,7 +113,7 @@ export class UserController {
     return await this.userService.emailDuplicatedCheck(email);
   }
 
-  @Get('/check-duplicated-account')
+  @Post('/check-duplicated-account')
   @ApiOperation({ summary: '유저 계정 중복 확인' })
   @ApiOkResponse({ description: '계정 중복일 경우 true' })
   @ApiQuery({
