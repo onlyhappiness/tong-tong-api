@@ -4,10 +4,12 @@ import config from './config';
 import { AppController } from './modules/app/app.controller';
 import { AppService } from './modules/app/app.service';
 import { AuthModule } from './modules/auth/auth.module';
+import { DatabaseModule } from './modules/database/database.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [config] }),
+    DatabaseModule,
     AuthModule,
   ],
   controllers: [AppController],
