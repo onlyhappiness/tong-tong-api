@@ -1,6 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { Account } from '../auth/model/account.entity';
+import { Session } from '../auth/model/session.entity';
+import { Verification } from '../auth/model/verification.entity';
+import { User } from '../user/model/user.entity';
 
 @Module({
   imports: [
@@ -14,7 +19,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         username: configService.getOrThrow('database.user'),
         password: configService.getOrThrow('database.password'),
         database: configService.getOrThrow('database.name'),
-        entities: [],
+        namingStrategy: new SnakeNamingStrategy(),
+        entities: [User, Account, Session, Verification],
         autoLoadEntities: true,
         synchronize: true,
       }),
