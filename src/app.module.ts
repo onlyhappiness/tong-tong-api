@@ -6,6 +6,7 @@ import { AppService } from './modules/app/app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { DatabaseModule } from './modules/database/database.module';
 import { UserModule } from './modules/user/user.module';
+import { PetModule } from './modules/pet/pet.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { UserModule } from './modules/user/user.module';
     DatabaseModule,
     AuthModule,
     UserModule,
+    PetModule,
   ],
   controllers: [AppController],
   providers: [AppService],

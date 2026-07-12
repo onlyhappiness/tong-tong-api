@@ -5,9 +5,14 @@ import {
   CreateDateColumn,
   Entity,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
+import { Pet } from '@/modules/pet/model/pet.entity';
+import { DailyLimit } from './daily-limit.entity';
+import { Wallet } from './wallet.entity';
 
 @Entity('user')
 export class User {
@@ -37,4 +42,13 @@ export class User {
 
   @OneToMany(() => Account, (account) => account.user)
   accounts: Account[];
+
+  @OneToOne(() => Wallet, (wallet) => wallet.user)
+  wallet: Wallet;
+
+  @OneToOne(() => DailyLimit, (dailyLimit) => dailyLimit.user)
+  dailyLimit: DailyLimit;
+
+  @OneToMany(() => Pet, (pet) => pet.user)
+  pets: Pet[];
 }

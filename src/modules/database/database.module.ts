@@ -5,7 +5,11 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { Account } from '../auth/model/account.entity';
 import { Session } from '../auth/model/session.entity';
 import { Verification } from '../auth/model/verification.entity';
+import { PetState } from '../pet/model/pet-state.entity';
+import { Pet } from '../pet/model/pet.entity';
+import { DailyLimit } from '../user/model/daily-limit.entity';
 import { User } from '../user/model/user.entity';
+import { Wallet } from '../user/model/wallet.entity';
 
 @Module({
   imports: [
@@ -20,7 +24,16 @@ import { User } from '../user/model/user.entity';
         password: configService.getOrThrow('database.password'),
         database: configService.getOrThrow('database.name'),
         namingStrategy: new SnakeNamingStrategy(),
-        entities: [User, Account, Session, Verification],
+        entities: [
+          User,
+          Account,
+          Session,
+          Verification,
+          Wallet,
+          DailyLimit,
+          Pet,
+          PetState,
+        ],
         autoLoadEntities: true,
         synchronize: true,
       }),
