@@ -42,6 +42,9 @@ export class Pet {
   stage: PetStage;
 
   @Column({ type: 'enum', enum: Species, nullable: true })
+  species: Species | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
   hatchedAt: Date | null;
 
   @Column({ type: 'timestamptz', nullable: true })
