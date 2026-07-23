@@ -36,16 +36,13 @@ export class PetState {
   loveCount: number;
 
   @Column({ default: 0 })
-  neglectCount: number;
+  activeDayCount: number;
 
-  @Column({ type: 'timestamptz', nullable: true })
-  windowStart: Date | null;
+  @Column({ type: 'int', nullable: true })
+  lastActivePeriod: number | null;
 
-  @Column({ default: false })
-  windowLoggedIn: boolean;
-
-  @Column({ default: false })
-  windowPetted: boolean;
+  @Column({ type: 'int', nullable: true })
+  lastPettedPeriod: number | null;
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
