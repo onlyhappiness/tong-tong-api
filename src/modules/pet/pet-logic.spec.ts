@@ -178,6 +178,39 @@ describe('settlePet', () => {
     expect(pet.evolvedAt?.getTime()).toBe(hatchTime + 72 * HOUR);
   });
 
+  it('classifies CAT when neglect dominates through the real settlePet wiring', () => {
+    const t0 = 1_000_000;
+    const pet = makeEgg(new Date(t0));
+    const state = makeFreshState();
+    const hatchTime = t0 + 24 * HOUR;
+
+    settlePet(pet, state, hatchTime); // day 0 active (unavoidable on hatch), activeDayCount=1
+    // no further visits before evolution, loveCount stays 0
+
+    settlePet(pet, state, hatchTime + 72 * HOUR);
+
+    // activeDayCount=1 -> neglect = 3-1 = 2; love=0 -> neglect(2) >= love(0)+1 -> CAT
+    expect(pet.stage).toBe(PetStage.EVOLVED);
+    expect(pet.species).toBe(Species.CAT);
+  });
+
+  it('classifies TURTLE when neither side clears the margin through the real settlePet wiring', () => {
+    const t0 = 1_000_000;
+    const pet = makeEgg(new Date(t0));
+    const state = makeFreshState();
+    const hatchTime = t0 + 24 * HOUR;
+
+    settlePet(pet, state, hatchTime); // day 0 active, activeDayCount=1
+    settlePet(pet, state, hatchTime + 25 * HOUR); // day 1 active, activeDayCount=2
+    state.loveCount = 1; // petted on only one of the two recorded days
+
+    settlePet(pet, state, hatchTime + 72 * HOUR);
+
+    // activeDayCount=2 -> neglect = 3-2 = 1; love=1 -> neither 1>=1+1 nor 1>=1+1 -> TURTLE
+    expect(pet.stage).toBe(PetStage.EVOLVED);
+    expect(pet.species).toBe(Species.TURTLE);
+  });
+
   it('does not keep incrementing activeDayCount once evolved', () => {
     const t0 = 1_000_000;
     const pet = makeEgg(new Date(t0));
