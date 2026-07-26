@@ -3,9 +3,12 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { PetService } from '@/modules/pet/pet.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { DailyLimit } from '../../user/model/daily-limit.entity';
 import { User } from '../../user/model/user.entity';
+import { Wallet } from '../../user/model/wallet.entity';
 import { LoginDTO } from '../dto/login.dto';
 import { SignupDTO } from '../dto/signup.dto';
 import { Account } from '../model/account.entity';
@@ -21,9 +24,17 @@ export class AuthService {
     @InjectRepository(Account)
     private readonly accountModel: Repository<Account>,
 
+    @InjectRepository(Wallet)
+    private readonly walletModel: Repository<Wallet>,
+
+    @InjectRepository(DailyLimit)
+    private readonly dailyLimitModel: Repository<DailyLimit>,
+
     private readonly passwordService: PasswordService,
 
     private readonly sessionService: SessionService,
+
+    private readonly petService: PetService,
   ) {}
 
   /**
@@ -52,6 +63,19 @@ export class AuthService {
         password,
       }),
     );
+
+    await this.walletModel.save(
+      this.walletModel.create({ userId: user.id, coins: 0 }),
+    );
+
+    await this.dailyLimitModel.save(
+      this.dailyLimitModel.create({
+        userId: user.id,
+        day: new Date().toISOString().slice(0, 10),
+      }),
+    );
+
+    await this.petService.createEgg(user.id);
 
     const token = await this.sessionService.create(user.id);
     return { user, token };
