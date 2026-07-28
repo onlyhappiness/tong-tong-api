@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -14,6 +15,8 @@ export class Session {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  // 로그인마다 userId 기준으로 기존 세션을 전량 삭제하므로 인덱스가 필요하다.
+  @Index()
   @Column('uuid')
   userId: string;
 
@@ -21,8 +24,9 @@ export class Session {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
+  // 원문 토큰은 저장하지 않는다. 쿠키로만 존재하고 DB에는 sha256 해시만 남는다.
   @Column({ unique: true })
-  token: string;
+  tokenHash: string;
 
   @Column({ type: 'timestamptz' })
   expiresAt: Date;

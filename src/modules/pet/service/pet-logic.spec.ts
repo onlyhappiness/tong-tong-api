@@ -1,5 +1,5 @@
-import { Pet, PetStage, Species } from './model/pet.entity';
-import { PetState } from './model/pet-state.entity';
+import { PetState } from '../model/pet-state.entity';
+import { Pet, PetStage, Species } from '../model/pet.entity';
 import {
   classifySpecies,
   deriveNeglectCount,

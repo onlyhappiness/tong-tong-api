@@ -1,3 +1,7 @@
+import {
+  ClientInfo,
+  ClientInfoParam,
+} from '@/common/decorators/client-info.decorator';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { AuthGuard } from '@/common/guards/auth.guard';
 import { User } from '@/modules/user/model/user.entity';
@@ -36,8 +40,9 @@ export class AuthController {
   async signup(
     @Body() dto: SignupDTO,
     @Res({ passthrough: true }) res: Response,
+    @ClientInfoParam() clientInfo: ClientInfo,
   ) {
-    const { user, token } = await this.authService.signup(dto);
+    const { user, token } = await this.authService.signup(dto, clientInfo);
     this.cookieService.setSession(res, token);
     return this.toPublicUser(user);
   }
@@ -48,8 +53,9 @@ export class AuthController {
   async login(
     @Body() dto: LoginDTO,
     @Res({ passthrough: true }) res: Response,
+    @ClientInfoParam() clientInfo: ClientInfo,
   ) {
-    const { user, token } = await this.authService.login(dto);
+    const { user, token } = await this.authService.login(dto, clientInfo);
     this.cookieService.setSession(res, token);
     return this.toPublicUser(user);
   }

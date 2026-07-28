@@ -32,24 +32,6 @@ export class Account {
   @Column({ type: 'varchar', nullable: true })
   password: string | null;
 
-  @Column({ type: 'text', nullable: true })
-  accessToken: string | null;
-
-  @Column({ type: 'text', nullable: true })
-  refreshToken: string | null;
-
-  @Column({ type: 'text', nullable: true })
-  idToken: string | null;
-
-  @Column({ type: 'timestamptz', nullable: true })
-  accessTokenExpiresAt: Date | null;
-
-  @Column({ type: 'timestamptz', nullable: true })
-  refreshTokenExpiresAt: Date | null;
-
-  @Column({ type: 'varchar', nullable: true })
-  scope: string | null;
-
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 

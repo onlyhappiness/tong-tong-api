@@ -1,9 +1,10 @@
+import { ClientInfo } from '@/common/decorators/client-info.decorator';
+import { PetService } from '@/modules/pet/service/pet.service';
 import {
   ConflictException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { PetService } from '@/modules/pet/pet.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DailyLimit } from '../../user/model/daily-limit.entity';
@@ -42,7 +43,10 @@ export class AuthService {
    * @param dto
    * @returns
    */
-  async signup(dto: SignupDTO): Promise<{ user: User; token: string }> {
+  async signup(
+    dto: SignupDTO,
+    clientInfo?: ClientInfo,
+  ): Promise<{ user: User; token: string }> {
     const existing = await this.userModel.findOne({
       where: { email: dto.email },
     });
@@ -77,14 +81,17 @@ export class AuthService {
 
     await this.petService.createEgg(user.id);
 
-    const token = await this.sessionService.create(user.id);
+    const token = await this.sessionService.create(user.id, clientInfo);
     return { user, token };
   }
 
   /**
    *
    */
-  async login(dto: LoginDTO): Promise<{ user: User; token: string }> {
+  async login(
+    dto: LoginDTO,
+    clientInfo?: ClientInfo,
+  ): Promise<{ user: User; token: string }> {
     const user = await this.userModel.findOne({
       where: { email: dto.email },
       relations: { accounts: true },
@@ -107,7 +114,10 @@ export class AuthService {
       );
     }
 
-    const token = await this.sessionService.create(user.id);
+    const token = await this.sessionService.createExclusive(
+      user.id,
+      clientInfo,
+    );
     return { user, token };
   }
 }
