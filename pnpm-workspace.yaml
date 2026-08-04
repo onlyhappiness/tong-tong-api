@@ -1,4 +1,4 @@
 allowBuilds:
-  '@scarf/scarf': set this to true or false
-  '@swc/core': set this to true or false
-  argon2: set this to true or false
+  '@scarf/scarf': true
+  '@swc/core': true
+  argon2: true

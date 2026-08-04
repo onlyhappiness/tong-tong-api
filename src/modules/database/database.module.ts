@@ -7,9 +7,9 @@ import { Session } from '../auth/model/session.entity';
 import { Verification } from '../auth/model/verification.entity';
 import { PetState } from '../pet/model/pet-state.entity';
 import { Pet } from '../pet/model/pet.entity';
-import { DailyLimit } from '../user/model/daily-limit.entity';
 import { User } from '../user/model/user.entity';
-import { Wallet } from '../user/model/wallet.entity';
+import { WalletTransaction } from '../wallet/model/wallet-transaction.entity';
+import { Wallet } from '../wallet/model/wallet.entity';
 
 @Module({
   imports: [
@@ -30,7 +30,7 @@ import { Wallet } from '../user/model/wallet.entity';
           Session,
           Verification,
           Wallet,
-          DailyLimit,
+          WalletTransaction,
           Pet,
           PetState,
         ],

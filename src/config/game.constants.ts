@@ -11,12 +11,15 @@ export const INTIMACY_MAX = 100;
 export const FOOD_PRICE = 30;
 export const FOOD_RECOVERY = 40;
 
-export const COIN_PER_HOUR = 100;
-export const COIN_CAP_HOURS = 8;
-
 export const PET_CAP = 3;
 
 export const TOTAL_MS = TOTAL_HOURS * 3_600_000;
 export const EVOLUTION_PERIOD_MS = EVOLUTION_PERIOD_HOURS * 3_600_000;
 export const EGG_HATCH_MS = EGG_HATCH_HOURS * 3_600_000;
 export const PETTING_COOLDOWN_MS = PETTING_COOLDOWN_HOURS * 3_600_000;
+
+export const ATTENDANCE_REWARD = 200;
+export const PETTING_REWARD = 20;
+
+export const PETTING_REWARD_DAILY_CAP = 3; // 계정당 — 넘겨도 액션은 성공, 코인만 안 나감
+export const PETTING_DAILY_CAP = 3; // 펫당 — 넘기면 400

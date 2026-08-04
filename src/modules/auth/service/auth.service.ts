@@ -6,30 +6,21 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { DailyLimit } from '../../user/model/daily-limit.entity';
+import { DataSource, Repository } from 'typeorm';
 import { User } from '../../user/model/user.entity';
-import { Wallet } from '../../user/model/wallet.entity';
 import { LoginDTO } from '../dto/login.dto';
 import { SignupDTO } from '../dto/signup.dto';
-import { Account } from '../model/account.entity';
 import { PasswordService } from './password.service';
 import { SessionService } from './session.service';
-
+import { Account } from '../model/account.entity';
+import { Wallet } from '@/modules/wallet/model/wallet.entity';
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userModel: Repository<User>,
 
-    @InjectRepository(Account)
-    private readonly accountModel: Repository<Account>,
-
-    @InjectRepository(Wallet)
-    private readonly walletModel: Repository<Wallet>,
-
-    @InjectRepository(DailyLimit)
-    private readonly dailyLimitModel: Repository<DailyLimit>,
+    private readonly dataSource: DataSource,
 
     private readonly passwordService: PasswordService,
 
@@ -54,34 +45,36 @@ export class AuthService {
       throw new ConflictException('이미 사용중인 이메일입니다.');
     }
 
-    const user = await this.userModel.save(
-      this.userModel.create({ email: dto.email, emailVerified: false }),
-    );
-
     const password = await this.passwordService.hash(dto.password);
-    await this.accountModel.save(
-      this.accountModel.create({
-        userId: user.id,
-        providerId: 'credential', // 기본 회원가입
-        accountId: user.id,
-        password,
-      }),
-    );
 
-    await this.walletModel.save(
-      this.walletModel.create({ userId: user.id, coins: 0 }),
-    );
+    const user = await this.dataSource.transaction(async (manager) => {
+      const created = await manager.getRepository(User).save(
+        manager.getRepository(User).create({
+          email: dto.email,
+          emailVerified: false,
+        }),
+      );
 
-    await this.dailyLimitModel.save(
-      this.dailyLimitModel.create({
-        userId: user.id,
-        day: new Date().toISOString().slice(0, 10),
-      }),
-    );
+      await manager.getRepository(Account).save(
+        manager.getRepository(Account).create({
+          userId: created.id,
+          providerId: 'credential', // 기본 회원가입
+          accountId: created.id,
+          password,
+        }),
+      );
 
-    await this.petService.createEgg(user.id);
+      await manager
+        .getRepository(Wallet)
+        .save(manager.getRepository(Wallet).create({ userId: created.id }));
+
+      await this.petService.createEgg(created.id, manager);
+
+      return created;
+    });
 
     const token = await this.sessionService.create(user.id, clientInfo);
+
     return { user, token };
   }
 

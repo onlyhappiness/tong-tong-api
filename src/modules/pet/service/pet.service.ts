@@ -3,11 +3,10 @@ import {
   FOOD_RECOVERY,
   HUNGER_MAX,
   INTIMACY_MAX,
-  PETTING_COOLDOWN_MS,
   PET_CAP,
+  PETTING_COOLDOWN_MS,
 } from '@/config/game.constants';
 import { User } from '@/modules/user/model/user.entity';
-import { Wallet } from '@/modules/user/model/wallet.entity';
 import {
   BadRequestException,
   Injectable,
@@ -18,6 +17,7 @@ import { PetResponseDTO, toPetResponse } from '../dto/pet-response.dto';
 import { PetState } from '../model/pet-state.entity';
 import { Pet, PetStage } from '../model/pet.entity';
 import { periodIndex, settlePet } from './pet-logic';
+import { Wallet } from '@/modules/wallet/model/wallet.entity';
 
 @Injectable()
 export class PetService {
@@ -30,34 +30,39 @@ export class PetService {
    * @returns 방금 만든 알의 응답 DTO
    * @throws BadRequestException 보유 펫이 상한(3마리)일 때
    */
-  async createEgg(userId: string): Promise<PetResponseDTO> {
-    return this.dataSource.transaction(async (manager) => {
-      // 카운트(집계) 레이스를 막으려고 user row를 잠그고 그 안에서 개수 세고 생성
-      await manager.getRepository(User).findOne({
+  async createEgg(
+    userId: string,
+    manager?: EntityManager,
+  ): Promise<PetResponseDTO> {
+    const run = async (m: EntityManager): Promise<PetResponseDTO> => {
+      // 카운트 레이스를 막으려고 user row를 잠그고 그 안에서 개수 세고 생성
+      await m.getRepository(User).findOne({
         where: { id: userId },
         lock: { mode: 'pessimistic_write' },
       });
 
-      const activeCount = await manager
+      const activeCount = await m
         .getRepository(Pet)
         .count({ where: { userId, stage: Not(PetStage.RELEASED) } });
 
       if (activeCount >= PET_CAP) {
-        throw new BadRequestException('펫은 최대 3마리까지 키울 수 있어요.');
+        throw new BadRequestException('펫은 최대 3마리까지 키울 수 있어요');
       }
 
-      const pet = await manager
+      const pet = await m
         .getRepository(Pet)
-        .save(
-          manager.getRepository(Pet).create({ userId, stage: PetStage.EGG }),
-        );
+        .save(m.getRepository(Pet).create({ userId, stage: PetStage.EGG }));
 
-      const state = await manager
-        .getRepository(PetState)
-        .save(manager.getRepository(PetState).create({ petId: pet.id }));
+      const state = await m.getRepository(PetState).save(
+        m.getRepository(PetState).create({
+          petId: pet.id,
+        }),
+      );
 
       return toPetResponse(pet, state);
-    });
+    };
+
+    return manager ? run(manager) : this.dataSource.transaction(run);
   }
 
   /**

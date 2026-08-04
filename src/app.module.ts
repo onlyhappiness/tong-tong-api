@@ -7,6 +7,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { DatabaseModule } from './modules/database/database.module';
 import { UserModule } from './modules/user/user.module';
 import { PetModule } from './modules/pet/pet.module';
+import { WalletModule } from './modules/wallet/wallet.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { PetModule } from './modules/pet/pet.module';
     AuthModule,
     UserModule,
     PetModule,
+    WalletModule,
   ],
   controllers: [AppController],
   providers: [AppService],

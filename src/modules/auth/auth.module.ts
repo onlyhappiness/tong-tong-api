@@ -2,9 +2,7 @@ import { AuthGuard } from '@/common/guards/auth.guard';
 import { PetModule } from '@/modules/pet/pet.module';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DailyLimit } from '../user/model/daily-limit.entity';
 import { User } from '../user/model/user.entity';
-import { Wallet } from '../user/model/wallet.entity';
 import { UserModule } from '../user/user.module';
 import { AuthController } from './controller/auth.controller';
 import { Account } from './model/account.entity';
@@ -17,14 +15,7 @@ import { SessionService } from './service/session.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      User,
-      Account,
-      Session,
-      Verification,
-      Wallet,
-      DailyLimit,
-    ]),
+    TypeOrmModule.forFeature([User, Account, Session, Verification]),
     UserModule,
     PetModule,
   ],

@@ -1,13 +1,12 @@
+import { User } from '@/modules/user/model/user.entity';
 import {
   Column,
-  CreateDateColumn,
   Entity,
   JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from './user.entity';
 
 @Entity('wallet')
 export class Wallet {
@@ -23,9 +22,6 @@ export class Wallet {
 
   @Column({ default: 0 })
   coins: number;
-
-  @CreateDateColumn({ type: 'timestamptz' })
-  coinAccruedAt: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
