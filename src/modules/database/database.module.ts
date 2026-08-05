@@ -10,6 +10,7 @@ import { Pet } from '../pet/model/pet.entity';
 import { User } from '../user/model/user.entity';
 import { WalletTransaction } from '../wallet/model/wallet-transaction.entity';
 import { Wallet } from '../wallet/model/wallet.entity';
+import { Attendance } from '../attendance/model/attendance.entity';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { Wallet } from '../wallet/model/wallet.entity';
           Verification,
           Wallet,
           WalletTransaction,
+          Attendance,
           Pet,
           PetState,
         ],

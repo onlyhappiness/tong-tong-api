@@ -8,6 +8,7 @@ import { DatabaseModule } from './modules/database/database.module';
 import { UserModule } from './modules/user/user.module';
 import { PetModule } from './modules/pet/pet.module';
 import { WalletModule } from './modules/wallet/wallet.module';
+import { AttendanceModule } from './modules/attendance/attendance.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { WalletModule } from './modules/wallet/wallet.module';
     UserModule,
     PetModule,
     WalletModule,
+    AttendanceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
