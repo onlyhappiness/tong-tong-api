@@ -14,7 +14,7 @@ import { WalletResponseDTO } from '../dto/wallet-response.dto';
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
-  @ApiOperation({ summary: '내 코인 잔액 확인하기' })
+  @ApiOperation({ summary: '내 코인 잔액 조회' })
   @ApiSuccessResponse(WalletResponseDTO)
   @Get('')
   async me(@CurrentUser() user: User): Promise<WalletResponseDTO> {

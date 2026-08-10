@@ -25,14 +25,16 @@ class FakeWalletRepository {
 
   constructor(private readonly rows: Wallet[]) {}
 
-  async findOne(options: FindOneCall): Promise<Wallet | null> {
+  findOne(options: FindOneCall): Promise<Wallet | null> {
     this.findOneCalls.push(options);
-    return this.rows.find((r) => r.userId === options.where.userId) ?? null;
+    return Promise.resolve(
+      this.rows.find((r) => r.userId === options.where.userId) ?? null,
+    );
   }
 
-  async save(row: Wallet): Promise<Wallet> {
+  save(row: Wallet): Promise<Wallet> {
     this.saveCalls.push(row);
-    return row;
+    return Promise.resolve(row);
   }
 }
 
@@ -44,9 +46,9 @@ class FakeLedgerRepository {
     return Object.assign(new WalletTransaction(), input);
   }
 
-  async save(row: WalletTransaction): Promise<WalletTransaction> {
+  save(row: WalletTransaction): Promise<WalletTransaction> {
     this.rows.push(row);
-    return row;
+    return Promise.resolve(row);
   }
 }
 

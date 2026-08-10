@@ -21,45 +21,45 @@ import { PetService } from '../service/pet.service';
 export class PetController {
   constructor(private readonly petService: PetService) {}
 
-  @ApiOperation({ summary: '새 알 생성 — 이미 3마리(비-RELEASED) 있으면 400.' })
+  @ApiOperation({ summary: '새 알 생성' })
   @ApiSuccessResponse(PetResponseDTO, { status: 201 })
   @Post()
   createEgg(@CurrentUser() user: User) {
     return this.petService.createEgg(user.id);
   }
 
-  @ApiOperation({ summary: '내 펫 목록 — 조회할 때마다 정산·저장됨.' })
+  @ApiOperation({ summary: '내 펫 목록 조회' })
   @ApiSuccessResponse(PetResponseDTO, { isArray: true })
   @Get()
   findAll(@CurrentUser() user: User) {
-    return this.petService.findAllForUser(user.id);
+    return this.petService.findAllForUser(user.id, new Date());
   }
 
-  @ApiOperation({ summary: '펫 단건 조회 — 조회할 때마다 정산·저장됨.' })
+  @ApiOperation({ summary: '펫 단건 조회' })
   @ApiSuccessResponse(PetResponseDTO)
   @Get(':id')
   findOne(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
-    return this.petService.findOneForUser(user.id, id);
+    return this.petService.findOneForUser(user.id, id, new Date());
   }
 
-  @ApiOperation({ summary: '밥 주기 — 코인 30 차감, 배고픔 +40.' })
+  @ApiOperation({ summary: '밥 주기' })
   @ApiSuccessResponse(PetResponseDTO, { status: 201 })
   @Post(':id/feed')
   feed(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
-    return this.petService.feed(user.id, id);
+    return this.petService.feed(user.id, id, new Date());
   }
 
-  @ApiOperation({ summary: '쓰다듬기 — 1시간 쿨타임.' })
+  @ApiOperation({ summary: '쓰다듬기' })
   @ApiSuccessResponse(PetResponseDTO, { status: 201 })
-  @Post(':id/pet')
-  pet(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
-    return this.petService.pet(user.id, id);
+  @Post(':id/touch')
+  touch(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
+    return this.petService.touch(user.id, id, new Date());
   }
 
   @ApiOperation({ summary: '놓아주기' })
   @ApiSuccessResponse(PetResponseDTO, { status: 201 })
   @Post(':id/release')
   release(@CurrentUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
-    return this.petService.release(user.id, id);
+    return this.petService.release(user.id, id, new Date());
   }
 }

@@ -5,12 +5,13 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { Account } from '../auth/model/account.entity';
 import { Session } from '../auth/model/session.entity';
 import { Verification } from '../auth/model/verification.entity';
-import { PetState } from '../pet/model/pet-state.entity';
 import { Pet } from '../pet/model/pet.entity';
 import { User } from '../user/model/user.entity';
 import { WalletTransaction } from '../wallet/model/wallet-transaction.entity';
 import { Wallet } from '../wallet/model/wallet.entity';
 import { Attendance } from '../attendance/model/attendance.entity';
+import { PetPetting } from '../pet/model/pet-petting.entity';
+import { PetFeed } from '../pet/model/pet-feed.entity';
 
 @Module({
   imports: [
@@ -34,7 +35,8 @@ import { Attendance } from '../attendance/model/attendance.entity';
           WalletTransaction,
           Attendance,
           Pet,
-          PetState,
+          PetPetting,
+          PetFeed,
         ],
         autoLoadEntities: true,
         synchronize: true,

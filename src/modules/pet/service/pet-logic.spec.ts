@@ -1,261 +1,193 @@
-import { PetState } from '../model/pet-state.entity';
-import { Pet, PetStage, Species } from '../model/pet.entity';
 import {
-  classifySpecies,
-  deriveNeglectCount,
-  periodIndex,
-  settlePet,
+  evolvedAtOf,
+  growthDays,
+  hatchedAtOf,
+  hungerOf,
+  intimacyOf,
+  speciesOf,
+  stageOf,
 } from './pet-logic';
+import { Pet, PetStage, Species } from '../model/pet.entity';
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
 
-function makeEgg(createdAt: Date): Pet {
+/** KST 시각을 UTC Date로. 테스트가 실행 환경 시간대에 안 흔들리게 한다. */
+function kst(iso: string): Date {
+  return new Date(`${iso}+09:00`);
+}
+
+function makePetCreatedAt(createdAt: Date): Pet {
   const pet = new Pet();
-  pet.stage = PetStage.EGG;
-  pet.species = null;
-  pet.hatchedAt = null;
-  pet.evolvedAt = null;
-  pet.releasedAt = null;
   pet.createdAt = createdAt;
+  pet.releasedAt = null;
   return pet;
 }
 
-function makeFreshState(): PetState {
-  const state = new PetState();
-  state.hunger = 100;
-  state.hungerUpdatedAt = null;
-  state.intimacy = 0;
-  state.lastPettedAt = null;
-  state.loveCount = 0;
-  state.activeDayCount = 0;
-  state.lastActivePeriod = null;
-  state.lastPettedPeriod = null;
-  return state;
-}
-
-describe('classifySpecies', () => {
-  it('returns POODLE when love clears neglect by the margin', () => {
-    expect(classifySpecies(2, 0)).toBe(Species.POODLE);
+describe('hatchedAtOf', () => {
+  it('hatches at 06:00 on the next game day', () => {
+    // 14:00 생성 → 게임 하루는 그날 → 다음 하루 06:00
+    expect(hatchedAtOf(kst('2026-08-09T14:00')).toISOString()).toBe(
+      kst('2026-08-10T06:00').toISOString(),
+    );
   });
 
-  it('returns CAT when neglect clears love by the margin', () => {
-    expect(classifySpecies(0, 2)).toBe(Species.CAT);
+  it('hatches the same calendar morning when created before 06:00', () => {
+    // 05:00은 게임 하루로 08-08 → 다음 하루는 08-09 06:00, 즉 한 시간 뒤
+    expect(hatchedAtOf(kst('2026-08-09T05:00')).toISOString()).toBe(
+      kst('2026-08-09T06:00').toISOString(),
+    );
   });
 
-  it('returns TURTLE when neither clears the margin', () => {
-    expect(classifySpecies(1, 1)).toBe(Species.TURTLE);
-    expect(classifySpecies(0, 0)).toBe(Species.TURTLE);
+  it('treats 06:00 sharp as the start of a new game day', () => {
+    expect(hatchedAtOf(kst('2026-08-09T06:00')).toISOString()).toBe(
+      kst('2026-08-10T06:00').toISOString(),
+    );
   });
 });
 
-describe('periodIndex', () => {
-  it('returns 0 for the same instant as hatchedAt', () => {
-    const t0 = new Date(1_000_000);
-    expect(periodIndex(t0, t0.getTime())).toBe(0);
+describe('evolvedAtOf', () => {
+  it('is exactly 72 hours after hatching', () => {
+    const createdAt = kst('2026-08-09T14:00');
+    expect(
+      evolvedAtOf(createdAt).getTime() - hatchedAtOf(createdAt).getTime(),
+    ).toBe(72 * HOUR);
   });
 
-  it('returns 1 once a full day has passed', () => {
-    const t0 = new Date(1_000_000);
-    expect(periodIndex(t0, t0.getTime() + DAY)).toBe(1);
-  });
-
-  it('returns 2 just before the third day starts', () => {
-    const t0 = new Date(1_000_000);
-    expect(periodIndex(t0, t0.getTime() + 2 * DAY + 23 * HOUR)).toBe(2);
+  it('also lands on 06:00 thanks to the aligned hatch', () => {
+    expect(evolvedAtOf(kst('2026-08-09T14:00')).toISOString()).toBe(
+      kst('2026-08-13T06:00').toISOString(),
+    );
   });
 });
 
-describe('deriveNeglectCount', () => {
-  it('is 0 for an EGG regardless of activeDayCount', () => {
-    const pet = makeEgg(new Date(0));
-    const state = makeFreshState();
-    state.activeDayCount = 0;
-    expect(deriveNeglectCount(pet, state)).toBe(0);
-  });
-
-  it('is TOTAL_DAYS minus activeDayCount once hatched', () => {
-    const pet = makeEgg(new Date(0));
-    pet.stage = PetStage.HATCHED;
-    const state = makeFreshState();
-    state.activeDayCount = 1;
-    expect(deriveNeglectCount(pet, state)).toBe(2);
+describe('growthDays', () => {
+  it('returns three consecutive days starting at the hatch day', () => {
+    const createdAt = kst('2026-08-09T14:00');
+    expect(growthDays(createdAt)).toEqual([
+      '2026-08-10',
+      '2026-08-11',
+      '2026-08-12',
+    ]);
   });
 });
 
-describe('settlePet', () => {
-  it('does nothing to an egg before EGG_HATCH_HOURS has elapsed', () => {
-    const t0 = 1_000_000;
-    const pet = makeEgg(new Date(t0));
-    const state = makeFreshState();
+describe('stageOf', () => {
+  const createdAt = kst('2026-08-09T14:00');
+  const pet = makePetCreatedAt(createdAt);
+  const hatch = hatchedAtOf(createdAt).getTime();
+  const evolve = evolvedAtOf(createdAt).getTime();
 
-    settlePet(pet, state, t0 + 10 * HOUR);
-
-    expect(pet.stage).toBe(PetStage.EGG);
-    expect(pet.hatchedAt).toBeNull();
-    expect(state.activeDayCount).toBe(0);
-    expect(state.hunger).toBe(100);
+  it('is EGG right up to the hatch instant', () => {
+    expect(stageOf(pet, new Date(hatch - 1))).toBe(PetStage.EGG);
   });
 
-  it('hatches an egg once EGG_HATCH_HOURS has elapsed and records day 0 as active', () => {
-    const t0 = 1_000_000;
-    const pet = makeEgg(new Date(t0));
-    const state = makeFreshState();
-    const hatchTime = t0 + 24 * HOUR;
-
-    settlePet(pet, state, hatchTime);
-
-    expect(pet.stage).toBe(PetStage.HATCHED);
-    expect(pet.hatchedAt?.getTime()).toBe(hatchTime);
-    expect(state.hungerUpdatedAt?.getTime()).toBe(hatchTime);
-    expect(state.activeDayCount).toBe(1);
-    expect(state.lastActivePeriod).toBe(0);
+  it('is HATCHED from the hatch instant', () => {
+    expect(stageOf(pet, new Date(hatch))).toBe(PetStage.HATCHED);
+    expect(stageOf(pet, new Date(evolve - 1))).toBe(PetStage.HATCHED);
   });
 
-  it('does not double-count the same day visited twice', () => {
-    const t0 = 1_000_000;
-    const pet = makeEgg(new Date(t0));
-    const state = makeFreshState();
-    const hatchTime = t0 + 24 * HOUR;
-
-    settlePet(pet, state, hatchTime); // day 0, activeDayCount -> 1
-    settlePet(pet, state, hatchTime + 5 * HOUR); // still day 0
-
-    expect(state.activeDayCount).toBe(1);
+  it('is EVOLVED from the evolve instant', () => {
+    expect(stageOf(pet, new Date(evolve))).toBe(PetStage.EVOLVED);
   });
 
-  it('counts a new day as active on the next visit', () => {
-    const t0 = 1_000_000;
-    const pet = makeEgg(new Date(t0));
-    const state = makeFreshState();
-    const hatchTime = t0 + 24 * HOUR;
+  it('is RELEASED regardless of how much time passed', () => {
+    const released = makePetCreatedAt(createdAt);
+    released.releasedAt = new Date(hatch);
+    expect(stageOf(released, new Date(evolve + 10 * DAY))).toBe(
+      PetStage.RELEASED,
+    );
+  });
+});
 
-    settlePet(pet, state, hatchTime); // day 0
-    settlePet(pet, state, hatchTime + 25 * HOUR); // day 1
+describe('speciesOf', () => {
+  const createdAt = kst('2026-08-09T14:00');
+  const pet = makePetCreatedAt(createdAt);
+  const evolved = evolvedAtOf(createdAt);
+  const beforeEvolve = new Date(evolved.getTime() - 1);
 
-    expect(state.activeDayCount).toBe(2);
-    expect(state.lastActivePeriod).toBe(1);
+  it('is null before evolving no matter how many pettings', () => {
+    expect(speciesOf(pet, 9, beforeEvolve)).toBeNull();
   });
 
-  it('does not record a day at or beyond TOTAL_DAYS', () => {
-    const t0 = 1_000_000;
-    const pet = makeEgg(new Date(t0));
-    const state = makeFreshState();
-    const hatchTime = t0 + 24 * HOUR;
-
-    settlePet(pet, state, hatchTime + 3 * DAY); // period 3, at TOTAL_DAYS boundary — evolves instead
-
-    expect(pet.stage).toBe(PetStage.EVOLVED);
+  it('is CAT for 0 or 1', () => {
+    expect(speciesOf(pet, 0, evolved)).toBe(Species.CAT);
+    expect(speciesOf(pet, 1, evolved)).toBe(Species.CAT);
   });
 
-  it('decays hunger proportionally to elapsed hours once hatched', () => {
-    const t0 = 1_000_000;
-    const pet = makeEgg(new Date(t0));
-    const state = makeFreshState();
-    const hatchTime = t0 + 24 * HOUR;
-
-    settlePet(pet, state, hatchTime); // hunger stays 100, hungerUpdatedAt = hatchTime
-    settlePet(pet, state, hatchTime + 3 * HOUR); // 3 hours pass, decay 10/hr
-
-    expect(state.hunger).toBe(70);
+  it('is TURTLE between the two thresholds', () => {
+    expect(speciesOf(pet, 2, evolved)).toBe(Species.TURTLE);
+    expect(speciesOf(pet, 5, evolved)).toBe(Species.TURTLE);
   });
 
-  it('triggers evolution at TOTAL_HOURS and classifies species from the counters', () => {
-    const t0 = 1_000_000;
-    const pet = makeEgg(new Date(t0));
-    const state = makeFreshState();
-    const hatchTime = t0 + 24 * HOUR;
-
-    settlePet(pet, state, hatchTime); // day 0 active, activeDayCount=1
-    settlePet(pet, state, hatchTime + 25 * HOUR); // day 1 active, activeDayCount=2
-    state.loveCount = 2; // petted on both recorded days
-
-    settlePet(pet, state, hatchTime + 72 * HOUR);
-
-    // activeDayCount=2 -> neglect = 3-2 = 1; love=2 -> 2 >= 1+1 -> POODLE
-    expect(pet.stage).toBe(PetStage.EVOLVED);
-    expect(pet.species).toBe(Species.POODLE);
-    expect(pet.evolvedAt?.getTime()).toBe(hatchTime + 72 * HOUR);
+  it('is POODLE from 6 up', () => {
+    expect(speciesOf(pet, 6, evolved)).toBe(Species.POODLE);
+    expect(speciesOf(pet, 9, evolved)).toBe(Species.POODLE);
   });
 
-  it('classifies CAT when neglect dominates through the real settlePet wiring', () => {
-    const t0 = 1_000_000;
-    const pet = makeEgg(new Date(t0));
-    const state = makeFreshState();
-    const hatchTime = t0 + 24 * HOUR;
+  it('keeps the species after the pet is released', () => {
+    // 놓아준 펫도 기록으로 남으므로 종이 사라지면 안 된다 (PRD §4.3).
+    const released = makePetCreatedAt(createdAt);
+    released.releasedAt = new Date(evolved.getTime() + HOUR);
 
-    settlePet(pet, state, hatchTime); // day 0 active (unavoidable on hatch), activeDayCount=1
-    // no further visits before evolution, loveCount stays 0
-
-    settlePet(pet, state, hatchTime + 72 * HOUR);
-
-    // activeDayCount=1 -> neglect = 3-1 = 2; love=0 -> neglect(2) >= love(0)+1 -> CAT
-    expect(pet.stage).toBe(PetStage.EVOLVED);
-    expect(pet.species).toBe(Species.CAT);
+    expect(speciesOf(released, 6, new Date(evolved.getTime() + 10 * DAY))).toBe(
+      Species.POODLE,
+    );
   });
 
-  it('classifies TURTLE when neither side clears the margin through the real settlePet wiring', () => {
-    const t0 = 1_000_000;
-    const pet = makeEgg(new Date(t0));
-    const state = makeFreshState();
-    const hatchTime = t0 + 24 * HOUR;
+  it('stays null when the pet was released before evolving', () => {
+    // 진화 전에 놓아줬으면 실제 시간이 아무리 흘러도 종이 생기지 않는다.
+    const released = makePetCreatedAt(createdAt);
+    released.releasedAt = beforeEvolve;
 
-    settlePet(pet, state, hatchTime); // day 0 active, activeDayCount=1
-    settlePet(pet, state, hatchTime + 25 * HOUR); // day 1 active, activeDayCount=2
-    state.loveCount = 1; // petted on only one of the two recorded days
+    expect(
+      speciesOf(released, 9, new Date(evolved.getTime() + 10 * DAY)),
+    ).toBeNull();
+  });
+});
 
-    settlePet(pet, state, hatchTime + 72 * HOUR);
-
-    // activeDayCount=2 -> neglect = 3-2 = 1; love=1 -> neither 1>=1+1 nor 1>=1+1 -> TURTLE
-    expect(pet.stage).toBe(PetStage.EVOLVED);
-    expect(pet.species).toBe(Species.TURTLE);
+describe('intimacyOf', () => {
+  it('is 5 per petting', () => {
+    expect(intimacyOf(0)).toBe(0);
+    // 육성 기간에 최대로 쓰다듬어도 45 — 진화 전에 100을 못 채우는 것이 의도다
+    expect(intimacyOf(9)).toBe(45);
   });
 
-  it('does not keep incrementing activeDayCount once evolved', () => {
-    const t0 = 1_000_000;
-    const pet = makeEgg(new Date(t0));
-    const state = makeFreshState();
-    const hatchTime = t0 + 24 * HOUR;
+  it('caps at 100', () => {
+    expect(intimacyOf(25)).toBe(100);
+  });
+});
 
-    settlePet(pet, state, hatchTime);
-    settlePet(pet, state, hatchTime + 72 * HOUR); // evolves here
-    const activeDayCountAtEvolution = state.activeDayCount;
+describe('hungerOf', () => {
+  const createdAt = kst('2026-08-09T14:00');
+  const hatch = hatchedAtOf(createdAt);
 
-    settlePet(pet, state, hatchTime + 100 * HOUR); // long after evolution
-
-    expect(state.activeDayCount).toBe(activeDayCountAtEvolution);
+  it('is full while still an egg', () => {
+    expect(hungerOf(createdAt, null, new Date(hatch.getTime() - HOUR))).toBe(
+      100,
+    );
   });
 
-  it('still decays hunger after evolution', () => {
-    const t0 = 1_000_000;
-    const pet = makeEgg(new Date(t0));
-    const state = makeFreshState();
-    const hatchTime = t0 + 24 * HOUR;
-
-    settlePet(pet, state, hatchTime);
-    settlePet(pet, state, hatchTime + 72 * HOUR); // evolves, hunger snapshot taken
-    const hungerAtEvolution = state.hunger;
-
-    settlePet(pet, state, hatchTime + 75 * HOUR); // 3 more hours post-evolution
-
-    expect(state.hunger).toBe(Math.max(0, hungerAtEvolution - 30));
+  it('decays from the hatch instant when never fed', () => {
+    expect(
+      hungerOf(createdAt, null, new Date(hatch.getTime() + 5 * HOUR)),
+    ).toBe(50);
   });
 
-  it('does nothing once released', () => {
-    const t0 = 1_000_000;
-    const pet = makeEgg(new Date(t0));
-    const state = makeFreshState();
-    const hatchTime = t0 + 24 * HOUR;
+  it('decays from the last feed instead', () => {
+    const fedAt = new Date(hatch.getTime() + 5 * HOUR);
+    expect(
+      hungerOf(
+        createdAt,
+        { hungerAfter: 90, fedAt },
+        new Date(fedAt.getTime() + 2 * HOUR),
+      ),
+    ).toBe(70);
+  });
 
-    settlePet(pet, state, hatchTime);
-    pet.stage = PetStage.RELEASED;
-    state.hunger = 55;
-    const snapshot = { ...state };
-
-    settlePet(pet, state, hatchTime + 500 * HOUR);
-
-    expect(state.hunger).toBe(snapshot.hunger);
-    expect(state.activeDayCount).toBe(snapshot.activeDayCount);
-    expect(state.loveCount).toBe(snapshot.loveCount);
+  it('never goes below zero', () => {
+    expect(
+      hungerOf(createdAt, null, new Date(hatch.getTime() + 100 * HOUR)),
+    ).toBe(0);
   });
 });

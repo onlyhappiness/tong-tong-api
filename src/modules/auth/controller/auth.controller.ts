@@ -32,10 +32,7 @@ export class AuthController {
     private readonly cookieService: CookieService,
   ) {}
 
-  @ApiOperation({
-    summary:
-      '회원가입 — 성공 시 자동 로그인(세션 쿠키 발급). 이메일 중복은 409.',
-  })
+  @ApiOperation({ summary: '회원가입' })
   @Post('signup')
   async signup(
     @Body() dto: SignupDTO,
@@ -47,7 +44,7 @@ export class AuthController {
     return this.toPublicUser(user);
   }
 
-  @ApiOperation({ summary: '로그인 — 성공 시 세션 쿠키 발급. 실패는 401.' })
+  @ApiOperation({ summary: '로그인' })
   @Post('login')
   @HttpCode(200)
   async login(
@@ -60,7 +57,7 @@ export class AuthController {
     return this.toPublicUser(user);
   }
 
-  @ApiOperation({ summary: '로그아웃 — 세션 삭제 및 쿠키 제거.' })
+  @ApiOperation({ summary: '로그아웃' })
   @Post('logout')
   @HttpCode(200)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
@@ -70,9 +67,7 @@ export class AuthController {
     return { loggedOut: true };
   }
 
-  @ApiOperation({
-    summary: '현재 로그인한 유저 조회 — 세션 쿠키 필요. 없으면 401.',
-  })
+  @ApiOperation({ summary: '내 정보 조회' })
   @ApiCookieAuth('session_token')
   @Get('me')
   @UseGuards(AuthGuard)

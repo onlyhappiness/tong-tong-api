@@ -15,7 +15,7 @@ import { AttendanceCheckInResponseDTO } from '../dto/attendance-check-in-respons
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 
-  @ApiOperation({ summary: '오늘 출석했는지' })
+  @ApiOperation({ summary: '오늘 출석 여부 조회' })
   @ApiSuccessResponse(AttendanceStatusResponseDTO)
   @Get()
   async status(
@@ -29,7 +29,7 @@ export class AttendanceController {
     };
   }
 
-  @ApiOperation({ summary: '출석 수령 — 하루 1회 200코인. 이미 받았으면 400.' })
+  @ApiOperation({ summary: '출석 체크' })
   @ApiSuccessResponse(AttendanceCheckInResponseDTO, { status: 201 })
   @Post()
   checkIn(@CurrentUser() user: User): Promise<AttendanceCheckInResponseDTO> {

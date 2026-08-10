@@ -1,86 +1,90 @@
+import { gameDay, gameDayStart, nextGameDay } from '@/common/utils/game-day';
 import {
-  EGG_HATCH_MS,
-  EVOLUTION_MARGIN,
-  EVOLUTION_PERIOD_MS,
+  CAT_MAX_PETTING,
   HUNGER_DECAY_PER_HOUR,
-  TOTAL_DAYS,
+  HUNGER_MAX,
+  INTIMACY_MAX,
+  INTIMACY_PER_PETTING,
+  POODLE_MIN_PETTING,
   TOTAL_MS,
 } from '@/config/game.constants';
-import { PetState } from '../model/pet-state.entity';
 import { Pet, PetStage, Species } from '../model/pet.entity';
 
-// 펫의 시간 기반 규칙만 모아둔 순수 함수 모음. now(ms)는 항상 호출한 쪽이 서버 시각으로 넘긴다.
+// 펫의 파생값을 계산하는 순수 함수 모음.
+// 저장된 상태를 읽지 않고 사실(createdAt·releasedAt·이벤트 개수)로 계산만 한다.
 
-/** 사랑/방치 횟수 차이로 진화할 종을 정한다. 차이가 기준 미만이면 거북이. */
-export function classifySpecies(
-  loveCount: number,
-  neglectCount: number,
-): Species {
-  if (loveCount >= neglectCount + EVOLUTION_MARGIN) return Species.POODLE;
-  if (neglectCount >= loveCount + EVOLUTION_MARGIN) return Species.CAT;
-  return Species.TURTLE;
+/**
+ * 부화 시각 — 알이 생긴 게임 하루의 익일 하루가 시작하는 06:00.
+ */
+export function hatchedAtOf(createdAt: Date): Date {
+  return gameDayStart(nextGameDay(gameDay(createdAt)));
 }
 
-/** 부화 이후 몇 번째 24시간 구간인지(0부터). 접속일·사랑 횟수 중복 적립을 막는 열쇠. */
-export function periodIndex(hatchedAt: Date, now: number): number {
-  return Math.floor((now - hatchedAt.getTime()) / EVOLUTION_PERIOD_MS);
+/** 진화 시각 — 부화 + 72h. 경계 정렬 덕분에 이 값도 항상 06:00이다. */
+export function evolvedAtOf(createdAt: Date): Date {
+  return new Date(hatchedAtOf(createdAt).getTime() + TOTAL_MS);
 }
 
-/** 방치 횟수 = 전체 일수 - 접속일. 저장하지 않고 필요할 때마다 계산한다. */
-export function deriveNeglectCount(pet: Pet, state: PetState): number {
-  if (pet.stage === PetStage.EGG) return 0;
-  return TOTAL_DAYS - state.activeDayCount;
+/** 진화 판정에 쓰이는 육성 기간 세 날짜. */
+export function growthDays(createdAt: Date): [string, string, string] {
+  const first = gameDay(hatchedAtOf(createdAt));
+  const second = nextGameDay(first);
+  return [first, second, nextGameDay(second)];
+}
+
+/** 현재 단계. 놓아준 펫은 시간이 흘러도 진화하지 않으므로 가장 먼저 본다. */
+export function stageOf(pet: Pet, now: Date): PetStage {
+  if (pet.releasedAt) return PetStage.RELEASED;
+
+  const t = now.getTime();
+  if (t < hatchedAtOf(pet.createdAt).getTime()) return PetStage.EGG;
+  if (t < evolvedAtOf(pet.createdAt).getTime()) return PetStage.HATCHED;
+  return PetStage.EVOLVED;
 }
 
 /**
- * 마지막 접속 이후 흐른 시간을 한 번에 정산한다(부화 → 접속일 → 배고픔 → 진화 순).
- * pet과 state를 그 자리에서 수정하며, 저장은 호출한 쪽 책임.
+ * 종. 진화에 도달하지 못했으면 `growthPettingCount`가 얼마든 null이다.
  */
-export function settlePet(pet: Pet, state: PetState, now: number): void {
-  // 1. 부화 체크
-  if (
-    pet.stage === PetStage.EGG &&
-    now >= pet.createdAt.getTime() + EGG_HATCH_MS
-  ) {
-    const hatchInstant = pet.createdAt.getTime() + EGG_HATCH_MS;
-    pet.stage = PetStage.HATCHED;
-    pet.hatchedAt = new Date(hatchInstant);
-    state.hungerUpdatedAt = new Date(hatchInstant);
-  }
+export function speciesOf(
+  pet: Pet,
+  growthPettingCount: number,
+  now: Date,
+): Species | null {
+  const frozenAt = pet.releasedAt ?? now;
+  if (frozenAt.getTime() < evolvedAtOf(pet.createdAt).getTime()) return null;
 
-  // 2. 접속일 기록 (HATCHED만) — 반복문 없음, 정수 비교 한 번
-  if (pet.stage === PetStage.HATCHED && pet.hatchedAt) {
-    const period = periodIndex(pet.hatchedAt, now);
-    if (period < TOTAL_DAYS && period !== state.lastActivePeriod) {
-      state.activeDayCount++;
-      state.lastActivePeriod = period;
-    }
-  }
+  if (growthPettingCount >= POODLE_MIN_PETTING) return Species.POODLE;
+  if (growthPettingCount <= CAT_MAX_PETTING) return Species.CAT;
+  return Species.TURTLE;
+}
 
-  // 3. 배고픔 재계산 (HATCHED 또는 EVOLVED)
-  if (
-    (pet.stage === PetStage.HATCHED || pet.stage === PetStage.EVOLVED) &&
-    state.hungerUpdatedAt
-  ) {
-    const hoursGone = (now - state.hungerUpdatedAt.getTime()) / 3_600_000;
-    state.hunger = Math.max(
-      0,
-      Math.round(state.hunger - HUNGER_DECAY_PER_HOUR * hoursGone),
-    );
-    state.hungerUpdatedAt = new Date(now);
-  }
+/**
+ * 친밀도. 진화 후 쓰다듬기도 반영되어야 하므로 전체 총합을 받는다.
+ * speciesOf가 받는 숫자와 다르다는 점에 주의.
+ */
+export function intimacyOf(totalPettingCount: number): number {
+  return Math.min(INTIMACY_MAX, totalPettingCount * INTIMACY_PER_PETTING);
+}
 
-  // 4. 진화 체크 — neglectCount는 저장 안 하고 여기서 바로 계산해서 넘김
-  if (
-    pet.stage === PetStage.HATCHED &&
-    pet.hatchedAt &&
-    now >= pet.hatchedAt.getTime() + TOTAL_MS
-  ) {
-    pet.stage = PetStage.EVOLVED;
-    pet.species = classifySpecies(
-      state.loveCount,
-      TOTAL_DAYS - state.activeDayCount,
-    );
-    pet.evolvedAt = new Date(now);
-  }
+/**
+ * 배고픔. 마지막 밥의 결과값에서 경과 시간만큼 깎는다.
+ *
+ * 밥을 한 번도 안 줬으면 기준선은 (부화 시각, 100)이다 — 알일 때는 배고픔이
+ * 흐르지 않으므로 생성 시각이 아니라 부화 시각이 출발점이다.
+ */
+export function hungerOf(
+  createdAt: Date,
+  lastFeed: { hungerAfter: number; fedAt: Date } | null,
+  now: Date,
+): number {
+  const hatched = hatchedAtOf(createdAt);
+  if (now.getTime() < hatched.getTime()) return HUNGER_MAX;
+
+  const base = lastFeed ?? { hungerAfter: HUNGER_MAX, fedAt: hatched };
+  const hoursGone = (now.getTime() - base.fedAt.getTime()) / 3_600_000;
+
+  return Math.max(
+    0,
+    Math.round(base.hungerAfter - HUNGER_DECAY_PER_HOUR * hoursGone),
+  );
 }

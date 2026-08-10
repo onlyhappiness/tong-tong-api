@@ -1,4 +1,4 @@
-import { gameDay } from './game-day';
+import { gameDay, gameDayStart, nextGameDay } from './game-day';
 
 describe('gameDay', () => {
   it('treats 05:59 KST as the previous game day', () => {
@@ -20,5 +20,29 @@ describe('gameDay', () => {
   it('converts from UTC rather than the host timezone', () => {
     // 2026-07-29 21:00 UTC = 2026-07-30 06:00 KST
     expect(gameDay(new Date('2026-07-29T21:00:00Z'))).toBe('2026-07-30');
+  });
+});
+
+describe('gameDayStart', () => {
+  it('returns 06:00 KST of that date', () => {
+    // KST 06:00 = UTC 전날 21:00
+    expect(gameDayStart('2026-08-09').toISOString()).toBe(
+      '2026-08-08T21:00:00.000Z',
+    );
+  });
+
+  it('round-trips with gameDay', () => {
+    expect(gameDay(gameDayStart('2026-08-09'))).toBe('2026-08-09');
+  });
+});
+
+describe('nextGameDay', () => {
+  it('advances one day', () => {
+    expect(nextGameDay('2026-08-09')).toBe('2026-08-10');
+  });
+
+  it('crosses month and year boundaries', () => {
+    expect(nextGameDay('2026-08-31')).toBe('2026-09-01');
+    expect(nextGameDay('2026-12-31')).toBe('2027-01-01');
   });
 });
