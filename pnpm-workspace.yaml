@@ -1,4 +1,0 @@
-allowBuilds:
-  '@scarf/scarf': true
-  '@swc/core': true
-  argon2: true
